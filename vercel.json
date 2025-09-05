@@ -6,7 +6,7 @@
   "devCommand": "npm run dev",
   "functions": {
     "app/api/**/*.ts": {
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs20.x"
     }
   },
   "crons": [
@@ -17,11 +17,11 @@
   ],
   "regions": ["lhr1"],
   "env": {
-    "NODE_VERSION": "22.12.0"
+    "NODE_VERSION": "20.18.0"
   },
   "build": {
     "env": {
-      "NODE_VERSION": "22.12.0"
+      "NODE_VERSION": "20.18.0"
     }
   }
 }
