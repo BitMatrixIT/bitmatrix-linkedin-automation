@@ -1,10 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    ppr: 'incremental',
-    reactCompiler: true,
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
-  },
   images: {
     remotePatterns: [
       {
@@ -26,7 +21,6 @@ const nextConfig = {
       },
     ];
   },
-  serverExternalPackages: ['@prisma/client', 'prisma'],
 };
 
 module.exports = nextConfig;
