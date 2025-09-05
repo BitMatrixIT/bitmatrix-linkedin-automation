@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(ADMIN)
+  image         String?
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  url         String   @unique
+  content     String   @db.Text
+  source      String
+  publishedAt DateTime
+  keywords    String[]
+  scraped     Boolean  @default(false)
+  processed   Boolean  @default(false)
+  
+  posts       Post[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("articles")
+}
+
+model Post {
+  id              String      @id @default(cuid())
+  articleId       String?
+  title           String
+  content         String      @db.Text
+  hashtags        String[]
+  imageUrl        String?
+  imagePrompt     String?
+  status          PostStatus  @default(DRAFT)
+  approvalStatus  ApprovalStatus @default(PENDING)
+  scheduledAt     DateTime?
+  publishedAt     DateTime?
+  linkedinPostId  String?
+  
+  rejectionReason String?
+  approvedBy      String?
+  teamsMessageId  String?
+  
+  article         Article?    @relation(fields: [articleId], references: [id])
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("posts")
+}
+
+model Settings {
+  id                String    @id @default(cuid())
+  postingFrequency  Int       @default(3)
+  postingDays       String[]  @default(["MONDAY", "WEDNESDAY", "FRIDAY"])
+  postingTime       String    @default("09:00")
+  timezone          String    @default("Europe/London")
+  
+  linkedinPageId    String?
+  linkedinAccessToken String? @db.Text
+  
+  teamsChannelId    String?
+  teamsWebhookUrl   String? @db.Text
+  
+  targetKeywords    String[]  @default(["dental technology", "dental software", "UK dental", "dental practice management"])
+  contentTone       String    @default("professional")
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@map("settings")
+}
+
+model CronJob {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  schedule    String
+  enabled     Boolean   @default(true)
+  lastRun     DateTime?
+  nextRun     DateTime?
+  status      String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("cron_jobs")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_EDIT
+}
