@@ -1,20 +1,15 @@
 import { NextAuthConfig } from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { PrismaClient } from "@prisma/client"
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
 
-const prisma = new PrismaClient()
-
 export const authConfig = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     MicrosoftEntraID({
       clientId: process.env.MICROSOFT_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-      tenantId: process.env.MICROSOFT_TENANT_ID!,
+      // Remove tenantId - it's not a valid property for this provider
       authorization: {
         params: {
-          scope: "openid profile email User.Read ChannelMessage.Send TeamMember.Read.All"
+          scope: "openid profile email User.Read"
         }
       }
     })
@@ -41,16 +36,12 @@ export const authConfig = {
     async jwt({ token, user, account }) {
       if (account && user) {
         token.accessToken = account.access_token
-        token.role = user.role
       }
       return token
     },
     async session({ session, token }) {
       if (token.accessToken) {
         session.accessToken = token.accessToken
-      }
-      if (token.role) {
-        session.user.role = token.role
       }
       return session
     }
@@ -70,11 +61,6 @@ declare module "next-auth" {
       email: string
       name?: string
       image?: string
-      role?: "ADMIN" | "MANAGER"
     }
-  }
-  
-  interface User {
-    role?: "ADMIN" | "MANAGER"
   }
 }
